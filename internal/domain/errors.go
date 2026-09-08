@@ -9,6 +9,7 @@ var (
 	ErrNotFound         = errors.New("Сокращенная ссылка не найдена в хранилище")
 	ErrInvalidURL       = errors.New("Ориг ссылка неправильного формата")
 	ErrCodeAlreadyTaken = errors.New("Сокращенная ссылка уже зарегистрирована")
+	ErrGenerationFailed = errors.New("не удалось сгенерировать уникальный код")
 )
 
 type AlreadyExistsError struct {
