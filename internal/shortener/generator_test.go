@@ -1,7 +1,6 @@
 package shortener
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 )
@@ -19,7 +18,7 @@ func TestGenerate_Alphabet(t *testing.T) {
 	re := regexp.MustCompile(`^[A-Za-z0-9_]{10}$`)
 	result, err := Generate()
 	if err != nil {
-		t.Fatal(fmt.Sprintf("Generate вернула ошибку %v", err))
+		t.Fatalf("Generate вернула ошибку %v", err)
 	}
 	ok := re.MatchString(result)
 	if !ok {
@@ -42,7 +41,7 @@ func TestGenerate_Uniqueness(t *testing.T) {
 	for i := 0; i < countToGenerate; i++ {
 		temp, err = Generate()
 		if err != nil {
-			t.Fatal(fmt.Printf("Generate вернула ошибку %v", err))
+			t.Fatalf("Generate вернула ошибку %v", err)
 		}
 		storage[temp] = true
 	}

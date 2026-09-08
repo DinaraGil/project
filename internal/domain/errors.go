@@ -1,0 +1,20 @@
+package domain
+
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	ErrNotFound         = errors.New("Сокращенная ссылка не найдена в хранилище")
+	ErrInvalidURL       = errors.New("Ориг ссылка неправильного формата")
+	ErrCodeAlreadyTaken = errors.New("Сокращенная ссылка уже зарегистрирована")
+)
+
+type AlreadyExistsError struct {
+	ExistingCode string
+}
+
+func (e *AlreadyExistsError) Error() string {
+	return fmt.Sprintf("URL уже сокращен, его сокращенная версия: %s", e.ExistingCode)
+}
