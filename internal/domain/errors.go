@@ -11,7 +11,7 @@ var (
 	ErrCodeAlreadyTaken = errors.New("Сокращенная ссылка уже зарегистрирована")
 	ErrGenerationFailed = errors.New("не удалось сгенерировать уникальный код")
 )
-
+// TODO: Код alreadyExists вроде существует? МБ 409?
 type AlreadyExistsError struct {
 	ExistingCode string
 }
