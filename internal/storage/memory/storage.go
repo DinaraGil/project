@@ -22,6 +22,7 @@ func (s *Storage) Save(ctx context.Context, code, originalURL string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	data, ok := s.urlToCode[originalURL]
+	// TODO: убери else уебанская вложенность
 	if ok {
 		return &domain.AlreadyExistsError{
 			ExistingCode: data,
