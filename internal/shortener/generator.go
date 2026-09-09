@@ -10,7 +10,7 @@ const (
 	// 63 символа длина
 	alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
 )
-
+// TODO: вынеси maximum в var
 func Generate() (string, error) {
 	shortURL := make([]byte, CodeLength)
 	maximum := big.NewInt(int64(len(alphabet)))
