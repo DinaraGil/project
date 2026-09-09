@@ -1,7 +1,7 @@
 package domain
 
 import "context"
-
+// TODO: зачем здесь описаны эти интерфейсы и на уровне домена ничего кроме интерфейсов?
 type Link struct {
 	ShortCode   string
 	OriginalURL string
