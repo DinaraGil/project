@@ -9,7 +9,7 @@ import (
 	"projectOzonBank/internal/domain"
 	"projectOzonBank/internal/shortener"
 )
-
+// TODO: можно вынести в конфиг
 const defaultMaxRetries = 5
 
 type LinkService struct {
@@ -40,6 +40,7 @@ func (s *LinkService) Shorten(ctx context.Context, originalURL string) (string, 
 
 	for i := 0; i < s.maxRetries; i++ {
 		code, err := shortener.Generate()
+		// TODO: оберни ошибку
 		if err != nil {
 			return "", err
 		}
@@ -50,6 +51,7 @@ func (s *LinkService) Shorten(ctx context.Context, originalURL string) (string, 
 		}
 
 		var existsErr *domain.AlreadyExistsError
+		// TODO: почему не сравнивать сразу с domain.AlreadyExistsError
 		if errors.As(err, &existsErr) {
 			return existsErr.ExistingCode, nil
 		}
