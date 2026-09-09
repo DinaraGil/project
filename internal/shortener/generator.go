@@ -19,6 +19,7 @@ func Generate() (string, error) {
 		if err != nil {
 			return "", err
 		}
+		// TODO: Почему такой алгоритм? не вылезет n за пределы 63? не понимаю
 		shortURL[i] = alphabet[n.Int64()]
 	}
 	result := string(shortURL)
