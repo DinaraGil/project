@@ -23,11 +23,16 @@ func NewHandler(service Shortener) *Handler {
 		service: service,
 	}
 }
+// TODO: лучше вынести объявление интерфейсов в отдельный файл, тут только методы написать (тут есть ходивары)
+
+// TODO: лучше w и r заменить на норм названия
+// TODO: напиши коммент что делает функция 
 func (h *Handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	var req ShortenRequest
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		// TODO: может не по-русски писать логи? Я конечно понимаю, что ты хвастаешься знанием русского
 		writeError(w, http.StatusBadRequest, "неправильное тело запроса")
 		return
 	}
@@ -60,6 +65,7 @@ func (h *Handler) Resolve(w http.ResponseWriter, r *http.Request) {
 func mapError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, domain.ErrNotFound):
+		// TODO: по нерусски напиши, брат
 		writeError(w, http.StatusNotFound, "короткая ссылка не найдена")
 
 	case errors.Is(err, domain.ErrInvalidURL):
