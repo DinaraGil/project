@@ -20,11 +20,11 @@ func New(ctx context.Context, dsn string) (*Storage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create pgx pool: %w", err)
 	}
-
+	
 	if err := pool.Ping(ctx); err != nil {
 		return nil, fmt.Errorf("ping postgres: %w", err)
 	}
-
+// TODO:  вынести в файл schema.sql
 	const schema = `
 		CREATE TABLE IF NOT EXISTS links (
 		short_code   VARCHAR(10) CONSTRAINT links_short_code_pk PRIMARY KEY,
@@ -43,6 +43,7 @@ func (s *Storage) Close() {
 	s.pool.Close()
 }
 func (s *Storage) Save(ctx context.Context, code, originalURL string) error {
+	// TODO: лучше использовать для запросов какие-нибудь библиотеки у нас squirrel 
 	const query = `
         INSERT INTO links (short_code, original_url)
         VALUES ($1, $2)
@@ -54,8 +55,9 @@ func (s *Storage) Save(ctx context.Context, code, originalURL string) error {
 	}
 
 	var pgErr *pgconn.PgError
-
+// TODO: что за код 23505, коммент оставь хотя бы
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		// TODO: не сравнивай со строками в case, лучше тип ввести
 		switch pgErr.ConstraintName {
 		case "links_original_url_uq":
 			const query = `
