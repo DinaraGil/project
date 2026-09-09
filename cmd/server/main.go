@@ -24,6 +24,7 @@ func main() {
 		"storage backend: memory or postgres",
 	)
 
+	// TODO: Перенести переменные в .env 
 	addr := flag.String(
 		"addr",
 		":8080",
@@ -41,13 +42,14 @@ func main() {
 	ctx := context.Background()
 
 	var storage domain.Storage
-
+// TODO: переделай на сравнение типа, а не сравнение строки, можно завести тип storageType и сравнивать на соответствие нему 
 	switch *storageType {
 	case "memory":
 		storage = memory.New()
 
 	case "postgres":
 		if *dsn == "" {
+			// TODO: не делай фатал, сделай error уровень и return, так как при фатал не сработает defer
 			log.Fatal("DATABASE_URL or -dsn is required for postgres storage")
 		}
 
@@ -67,7 +69,7 @@ func main() {
 	service := app.New(storage)
 	handler := api.NewHandler(service)
 	router := api.NewRouter(handler)
-
+// TODO: можно таймауты вынести в конфиг, или там наверное есть дефолтные
 	server := &http.Server{
 		Addr:         *addr,
 		Handler:      router,
