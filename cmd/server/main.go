@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"projectOzonBank/internal/app"
 	"projectOzonBank/internal/domain"
 	"projectOzonBank/internal/storage/memory"
+	"projectOzonBank/internal/storage/postgres"
 )
 
 func main() {
@@ -28,7 +30,15 @@ func main() {
 		"http server address",
 	)
 
+	dsn := flag.String(
+		"dsn",
+		os.Getenv("DATABASE_URL"),
+		"PostgreSQL connection string",
+	)
+
 	flag.Parse()
+
+	ctx := context.Background()
 
 	var storage domain.Storage
 
@@ -37,7 +47,18 @@ func main() {
 		storage = memory.New()
 
 	case "postgres":
-		log.Fatal("postgres storage not implemented yet")
+		if *dsn == "" {
+			log.Fatal("DATABASE_URL or -dsn is required for postgres storage")
+		}
+
+		pgStorage, err := postgres.New(ctx, *dsn)
+		if err != nil {
+			log.Fatalf("failed to create postgres storage: %v", err)
+		}
+
+		storage = pgStorage
+
+		defer pgStorage.Close()
 
 	default:
 		log.Fatalf("unknown storage type: %s", *storageType)
@@ -60,28 +81,28 @@ func main() {
 
 		if err := server.ListenAndServe(); err != nil &&
 			err != http.ErrServerClosed {
-			log.Fatalf("server failed: %v", err)
+			log.Printf("server failed: %v", err)
 		}
 	}()
 
-	ctx, stop := signal.NotifyContext(
+	shutdownCtx, stop := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT,
 		syscall.SIGTERM,
 	)
 	defer stop()
 
-	<-ctx.Done()
+	<-shutdownCtx.Done()
 
 	log.Println("shutdown signal received")
 
-	shutdownCtx, cancel := context.WithTimeout(
+	ctx, cancel := context.WithTimeout(
 		context.Background(),
 		5*time.Second,
 	)
 	defer cancel()
 
-	if err := server.Shutdown(shutdownCtx); err != nil {
+	if err := server.Shutdown(ctx); err != nil {
 		log.Printf("graceful shutdown failed: %v", err)
 	}
 

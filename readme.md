@@ -1,0 +1,150 @@
+# URL Shortener
+
+Сервис для создания коротких ссылок. Поддерживает два бэкенда хранения: in-memory и PostgreSQL, переключаемые флагом при запуске.
+
+## Возможности
+
+- Создание короткой ссылки на оригинальный URL (`POST /shorten`)
+- Получение оригинального URL по короткой ссылке (`GET /{code}`)
+- Короткий код — 10 символов из `[A-Za-z0-9_]`, генерируется криптографически стойким рандомом
+- Гарантия: один оригинальный URL — одна короткая ссылка (уникальность обеспечена на уровне хранилища)
+- Два хранилища: in-memory  и PostgreSQL 
+
+## Быстрый старт
+
+### Через Docker Compose (рекомендуется)
+
+Поднимает сервис вместе с PostgreSQL:
+
+```bash
+docker compose up -d --build
+```
+
+Сервис будет доступен на `http://localhost:8080`.
+
+Проверить:
+
+```bash
+curl -X POST http://localhost:8080/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://google.com"}'
+# -> {"code":"AbCd123456"}
+
+curl http://localhost:8080/AbCd123456
+# -> {"original_url":"https://google.com"}
+```
+
+Остановить и удалить данные:
+
+```bash
+docker compose down -v
+```
+
+### Локальный запуск (без Docker)
+
+С in-memory хранилищем (по умолчанию, ничего дополнительно не требуется):
+
+```bash
+go run ./cmd/server
+```
+
+С PostgreSQL — сначала поднимите базу:
+
+```bash
+docker compose up -d postgres
+```
+
+Затем запустите сервис, указав строку подключения:
+
+```bash
+go run ./cmd/server -storage=postgres -dsn="postgres://shortener:shortener@localhost:5433/shortener?sslmode=disable"
+```
+
+## Конфигурация
+
+| Флаг        | Переменная окружения | По умолчанию | Описание                                  |
+|-------------|-----------------------|--------------|--------------------------------------------|
+| `-storage`  | —                      | `memory`     | Бэкенд хранения: `memory` или `postgres`  |
+| `-addr`     | —                      | `:8080`      | Адрес HTTP-сервера                        |
+| `-dsn`      | `DATABASE_URL`         | —            | Строка подключения к PostgreSQL (обязательна при `-storage=postgres`) |
+
+## API
+
+### `POST /shorten`
+
+Создаёт короткую ссылку на оригинальный URL. Если URL уже был сокращён ранее — возвращает существующий код (повторного создания не происходит).
+
+**Запрос:**
+```json
+{ "url": "https://example.com/some/very/long/path" }
+```
+
+**Ответ `201 Created`:**
+```json
+{ "code": "AbCd123456" }
+```
+
+**Возможные ошибки:**
+| Статус | Причина                          |
+|--------|-----------------------------------|
+| 400    | Невалидный URL или тело запроса   |
+| 503    | Не удалось сгенерировать уникальный код (крайне маловероятно) |
+| 500    | Внутренняя ошибка (например, недоступна БД) |
+
+### `GET /{code}`
+
+Возвращает оригинальный URL по короткому коду.
+
+**Ответ `200 OK`:**
+```json
+{ "original_url": "https://example.com/some/very/long/path" }
+```
+
+**Возможные ошибки:**
+| Статус | Причина                    |
+|--------|-----------------------------|
+| 404    | Короткая ссылка не найдена  |
+
+## Тестирование
+
+Юнит-тесты (генератор кода, in-memory хранилище, сервисный слой, HTTP-хендлеры) не требуют внешних зависимостей:
+
+```bash
+go test ./...
+```
+
+Интеграционные тесты для PostgreSQL-хранилища требуют реальной базы. Нужно поднять и установить строку через пренменную окружения
+
+```bash
+docker compose up -d postgres
+
+# PowerShell
+$env:TEST_DATABASE_URL = "postgres://shortener:shortener@localhost:5433/shortener?sslmode=disable"
+
+# bash
+export TEST_DATABASE_URL="postgres://shortener:shortener@localhost:5433/shortener?sslmode=disable"
+
+go test ./internal/storage/postgres/...
+```
+
+Без установленной переменной эти тесты автоматически пропускаются (`t.Skip`).
+## Требования
+
+- Go 1.22+
+- Docker
+- Docker Compose
+## Структура проекта
+
+```text
+cmd/server/              # точка входа приложения
+internal/
+├── api/                 # HTTP handlers, роутинг, DTO
+├── app/                 # бизнес-логика
+├── domain/              # интерфейсы и доменные ошибки
+├── shortener/           # генерация коротких кодов
+└── storage/
+    ├── memory/          # in-memory хранилище
+    └── postgres/        # PostgreSQL хранилище
+migrations/              # SQL-миграции
+## Конкуретность
+In-memory хранилище защищает данные с помощью RWMutux

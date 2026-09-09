@@ -13,7 +13,7 @@ const (
 
 func Generate() (string, error) {
 	shortURL := make([]byte, CodeLength)
-	maximum := big.NewInt(int64(CodeLength))
+	maximum := big.NewInt(int64(len(alphabet)))
 	for i := 0; i < len(shortURL); i++ {
 		n, err := rand.Int(rand.Reader, maximum)
 		if err != nil {

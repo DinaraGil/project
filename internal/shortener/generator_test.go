@@ -36,17 +36,17 @@ func TestGenerate_NoPanicManyTimes(t *testing.T) {
 func TestGenerate_Uniqueness(t *testing.T) {
 	storage := make(map[string]bool)
 	countToGenerate := 100000
-	var temp string
-	var err error
 	for i := 0; i < countToGenerate; i++ {
-		temp, err = Generate()
+		code, err := Generate()
 		if err != nil {
 			t.Fatalf("Generate вернула ошибку %v", err)
 		}
-		storage[temp] = true
+		if storage[code] {
+			t.Logf("ДУБЛИКАТ на итерации %d: %q (длина %d)", i, code, len(code))
+		}
+		storage[code] = true
 	}
 	if len(storage) != countToGenerate {
-		t.Errorf("Кол-во сгенерированных данных %d не равна ожидаемому кол-ву  %d", len(storage), countToGenerate)
-
+		t.Errorf("Кол-во уникальных кодов %d не равно ожидаемому %d", len(storage), countToGenerate)
 	}
 }

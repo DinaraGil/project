@@ -28,7 +28,7 @@ func (h *Handler) Shorten(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
+		writeError(w, http.StatusBadRequest, "неправильное тело запроса")
 		return
 	}
 
@@ -60,13 +60,13 @@ func (h *Handler) Resolve(w http.ResponseWriter, r *http.Request) {
 func mapError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, domain.ErrNotFound):
-		writeError(w, http.StatusNotFound, "short link not found")
+		writeError(w, http.StatusNotFound, "короткая ссылка не найдена")
 
 	case errors.Is(err, domain.ErrInvalidURL):
-		writeError(w, http.StatusBadRequest, "invalid url")
+		writeError(w, http.StatusBadRequest, "неккоректный url")
 
 	case errors.Is(err, domain.ErrGenerationFailed):
-		writeError(w, http.StatusServiceUnavailable, "try again later")
+		writeError(w, http.StatusServiceUnavailable, "попробуйте позже")
 
 	default:
 		writeError(w, http.StatusInternalServerError, "internal error")
