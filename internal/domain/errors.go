@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 )
-
+// TODO: зачем по-русски??
 var (
 	ErrNotFound         = errors.New("Сокращенная ссылка не найдена в хранилище")
 	ErrInvalidURL       = errors.New("Ориг ссылка неправильного формата")
