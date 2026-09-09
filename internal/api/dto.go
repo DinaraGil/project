@@ -1,3 +1,4 @@
+// TODO: может вынести в домен?
 package api
 
 type ShortenRequest struct {
